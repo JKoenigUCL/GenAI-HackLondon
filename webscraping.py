@@ -12,24 +12,29 @@ class Source_Finder:
         self.CSE_ID = CSE_ID
         self.block_list = block_list
 
-    def google_search(self, query, num=10):
-        service = build("customsearch", "v1", developerKey=self.API_KEY)
-        result = service.cse().list(
-            q=query,
-            cx=self.CSE_ID,
-            num=num
-        ).execute()
-        return result['items']
-
+    def google_search(self, query, num=3):
+        for i in range(3):
+            try:
+                service = build("customsearch", "v1", developerKey=self.API_KEY)
+                result = service.cse().list(
+                    q=query,
+                    cx=self.CSE_ID,
+                    num=num
+                ).execute()
+                return result.get('items', [])  # Return an empty list if 'items' key is missing
+            except Exception as e:
+                print(f"An error occurred during Google search: {e}")
+                print(result)
+                # return []  # Return an empty list in case of any errors
+        return []
 
     def filter_results(self, r):
         results = r.copy()
         for r in results:
-            for b in block_list:
+            for b in self.block_list:
                 if b in r['link']:
                     results.remove(r)
         return results
-
 
     def result_to_list(self, r):
         res = []
@@ -38,16 +43,8 @@ class Source_Finder:
             res.append(dictElem)
         return res
 
-
     def find_sources(self, title, description):
         query = title + " " + description
         results = self.google_search(query)
         filtered = self.filter_results(results)
         return self.result_to_list(filtered)
-
-
-## Example usage
-API_KEY = ""
-CSE_ID = ""
-SF = Source_Finder(API_KEY, CSE_ID, block_list)
-print(SF.find_sources("ELECTRIC BIKES: PROS AND CONS", "An article discussing the advantages and disadvantages of using E-bikes"))

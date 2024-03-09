@@ -70,3 +70,5 @@ class ProductReviewFinder:
             title = f'Review of {product["title"]}'
             description = self.createDescription(title)
             product_reviews.append({'title': title, 'description': description})
+        
+        return product_reviews
