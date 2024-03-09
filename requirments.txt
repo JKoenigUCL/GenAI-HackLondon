@@ -1,2 +1,1 @@
-openai
-beautifulsoup4
+google-api-python-client
