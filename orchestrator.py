@@ -1,5 +1,6 @@
 import ProductReviewFinder
 
+
 class Orchestrator:
     def __init__(self, openai_key, asin_data_api_key):
         self.review_finder = ProductReviewFinder(openai_key, asin_data_api_key)
@@ -48,3 +49,4 @@ class Orchestrator:
             print("---")
 
         return product_data
+
