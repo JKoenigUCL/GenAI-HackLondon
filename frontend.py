@@ -32,7 +32,7 @@ def saveContentPlan(articles, folder_path):
             json.dump(article, json_file, indent=4)
 
 def sourcesTomarkdown(sources):
-    return "  \n".join([f"[{source['title']}]({source['url']})" for source in sources])
+    return "  \n".join([f"[{source['title']}]({source['link']})" for source in sources])
     
 
 # Convert JSON article to markdown
