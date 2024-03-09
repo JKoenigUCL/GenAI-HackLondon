@@ -4,6 +4,8 @@ from ArticlePlanGenerator import ArticlePlanGenerator
 import concurrent.futures
 from webscraping import Source_Finder
 from typing import List, Dict
+import pandas as pd
+import re
 
 block_list = ["reddit", "4chan"]
 
@@ -48,18 +50,14 @@ class Orchestrator:
 
         return planned_articles
 
-# Example usage
-if __name__ == "__main__":
+
+def fudgeBrownie(topic):
 
     orchestrator = Orchestrator(openai_key, asin_data_api_key, google_api_key, cse_id)
-
-    topic = "E-Bikes"
     articles_with_sources = orchestrator.run(topic)
 
-    # Print the articles with sources
+    #Get rid of escape characters
     for article in articles_with_sources:
-        print(f"Index: {article['index']}")
-        print(f"Title: {article['title']}")
-        print(f"Description: {article['description']}")
-        print(f"Sources: {article['sources']}")
-        print("---")
+        article["title"] = re.sub(r'[\\/*?:"<>|]', '', article["title"])
+    
+    return pd.DataFrame(articles_with_sources)
