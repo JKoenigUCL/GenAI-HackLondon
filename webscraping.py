@@ -48,3 +48,10 @@ class Source_Finder:
         results = self.google_search(query)
         filtered = self.filter_results(results)
         return self.result_to_list(filtered)
+
+
+## Example usage
+# API_KEY = "AIzaSyCR21nFRcz47AD1nUo3zv3JLtUix7SkIKk"
+# CSE_ID = "66bc6d0ef669f409e"
+# SF = Source_Finder(API_KEY, CSE_ID, block_list)
+# print(SF.find_sources("ELECTRIC BIKES: PROS AND CONS", "An article discussing the advantages and disadvantages of using E-bikes"))
