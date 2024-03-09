@@ -1,8 +1,5 @@
 from googleapiclient.discovery import build
 
-# comment out / add hosts
-block_list = ["reddit",
-              "4chan"]
 
 
 class Source_Finder:
@@ -45,9 +42,3 @@ class Source_Finder:
         filtered = self.filter_results(results)
         return self.result_to_list(filtered)
 
-
-## Example usage
-API_KEY = ""
-CSE_ID = ""
-SF = Source_Finder(API_KEY, CSE_ID, block_list)
-print(SF.find_sources("ELECTRIC BIKES: PROS AND CONS", "An article discussing the advantages and disadvantages of using E-bikes"))

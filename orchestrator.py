@@ -1,52 +1,34 @@
 from ProductReviewFinder import ProductReviewFinder
+from SupplementaryArticlePlanner import SupplementaryArticlePlanner
+from webscraping import Source_Finder
+
+# comment out / add hosts
+block_list = ["reddit",
+              "4chan"]
 
 
 class Orchestrator:
-    def __init__(self, openai_key, asin_data_api_key):
-        self.review_finder = ProductReviewFinder(openai_key, asin_data_api_key)
+    def __init__(self, openai_key, asin_data_api_key, google_api_key, cse_id, block_list):
+        self.product_review_finder = ProductReviewFinder(openai_key, asin_data_api_key)
+        self.supplementary_article_planner = SupplementaryArticlePlanner(openai_key)
+        self.source_finder = Source_Finder(google_api_key, cse_id, block_list)
 
-    def generate_product_reviews(self, topic):
-        # Get the top products from Amazon
-        top_products = self.review_finder.getAmazonTop(topic)
+    def orchestrate(self, topic):
+        article_list = self.product_review_finder.createArticleList(
+            topic) + self.supplementary_article_planner.generateSupplementaryArticles(topic)
 
-        # Generate related products using OpenAI
-        related_products = self.review_finder.generateRelatedProducts(topic)
+        # {"title": "Article1", "description": "Description1"}
 
-        # Create a list of product reviews with descriptions
-        product_reviews = self.review_finder.createArticleList(topic)
+        for (i, article) in enumerate(article_list):
+            title, description = article["title"], article["description"]
+            sources = self.source_finder.find_sources(title, description)
+            article_list[i] = article.update["sources": sources]
 
-        # Combine the top products, related products, and product reviews
-        combined_data = []
-        for product, review in zip(top_products, product_reviews):
-            product_data = {
-                'title': product['title'],
-                'review_title': review['title'],
-                'review_description': review['description'],
-                'related_products': related_products
-            }
-            combined_data.append(product_data)
+        return article_list
 
-        return combined_data
 
-    def run(self, topic):
-        # Execute the entire workflow
-        product_data = self.generate_product_reviews(topic)
 
-        # Process or display the product_data as needed
-        openai_key = 'your_openai_key'
-        asin_data_api_key = 'your_asin_data_api_key'
-
-        orchestrator = Orchestrator(openai_key, asin_data_api_key)
-        topic = 'E-Bikes'
-        product_data = orchestrator.run(topic)
-
-        # Print the product data
-        for data in product_data:
-            print(f"Title: {data['title']}")
-            print(f"Review Title: {data['review_title']}")
-            print(f"Review Description: {data['review_description']}")
-            print(f"Related Products: {', '.join(data['related_products'])}")
-            print("---")
-
-        return product_data
-
+o = Orchestrator(openAI_key, asin_key, google_key, cse_id, block_list)
+topic = "E-Bikes"
+articles = o.orchestrate(topic)
+print(topic)
