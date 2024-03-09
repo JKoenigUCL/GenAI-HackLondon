@@ -1,15 +1,18 @@
 from ProductReviewFinder import ProductReviewFinder
 from SupplementaryArticlePlanner import SupplementaryArticlePlanner
+from ArticlePlanGenerator import ArticlePlanGenerator
 from webscraping import Source_Finder
 from typing import List, Dict
 
 block_list = ["reddit", "4chan"]
 
 class Orchestrator:
-    def __init__(self, product_review_finder, supplementary_article_planner, source_finder):
-        self.product_review_finder = product_review_finder
-        self.supplementary_article_planner = supplementary_article_planner
-        self.source_finder = source_finder
+    def __init__(self, openai_key, asin_data_api_key, google_api_key, cse_id):
+        self.product_review_finder = ProductReviewFinder(openai_key, asin_data_api_key)
+        self.supplementary_article_planner = SupplementaryArticlePlanner(openai_key)
+        self.source_finder = Source_Finder(google_api_key, cse_id, block_list)
+        self.article_plan_generator = ArticlePlanGenerator(openai_key)
+
 
     def run(self, topic: str) -> List[Dict]:
         product_reviews = self.product_review_finder.createArticleList(topic)
@@ -26,20 +29,19 @@ class Orchestrator:
 
         articles_with_sources = list(articles_with_sources)  # Convert to list
 
-        return articles_with_sources
+        planned_articles = []
+        for article in articles_with_sources:
+            article_plan = self.article_plan_generator.generateSupplementaryArticles(article["title"], article["description"])
+            article["article_plan"] = article_plan
+            planned_articles.append(article)
+
+        return planned_articles
 
 # Example usage
 if __name__ == "__main__":
-    openai_key = ""
-    asin_data_api_key = ""
-    google_api_key = ""
-    cse_id = ""
+    
 
-    product_review_finder = ProductReviewFinder(openai_key, asin_data_api_key)
-    supplementary_article_planner = SupplementaryArticlePlanner(openai_key)
-    source_finder = Source_Finder(google_api_key, cse_id, block_list)
-
-    orchestrator = Orchestrator(product_review_finder, supplementary_article_planner, source_finder)
+    orchestrator = Orchestrator(openai_key, asin_data_api_key, google_api_key, cse_id)
 
     topic = "E-Bikes"
     articles_with_sources = orchestrator.run(topic)
