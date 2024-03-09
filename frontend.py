@@ -4,6 +4,8 @@ import json
 import markdown
 import os
 
+from orchestrator import fudgeBrownie
+
 dummy_data = pd.read_json("final_table_format.json")
 
 
@@ -38,7 +40,7 @@ def jsonArticleToHtml(json_article):
     return markdown.markdown(
         "## " + json_article["title"] + "  \n" +
         json_article["description"] + "  \n" +
-        json_article["content"] + "  \n" +
+        json_article["article_plan"] + "  \n" +
         "### Sources  \n"+
         sourcesTomarkdown(json_article["sources"])
     )
@@ -52,8 +54,7 @@ def generateArticles(Product, Article=None):
         print("Folder exists")
         articles = createDataFrame(folder_path)
     else:
-        # replace pd.DataFrame(dummy_data) with the actual data generated
-        articles = pd.DataFrame(dummy_data)
+        articles = fudgeBrownie(Product)
         saveContentPlan(articles, folder_path)
 
     json_article = {}

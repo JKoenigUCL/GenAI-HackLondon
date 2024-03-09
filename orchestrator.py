@@ -3,6 +3,7 @@ from SupplementaryArticlePlanner import SupplementaryArticlePlanner
 from ArticlePlanGenerator import ArticlePlanGenerator
 from webscraping import Source_Finder
 from typing import List, Dict
+import pandas as pd
 
 block_list = ["reddit", "4chan"]
 
@@ -37,13 +38,9 @@ class Orchestrator:
 
         return planned_articles
 
-# Example usage
-if __name__ == "__main__":
-    
+def fudgeBrownie(topic):
 
     orchestrator = Orchestrator(openai_key, asin_data_api_key, google_api_key, cse_id)
-
-    topic = "E-Bikes"
     articles_with_sources = orchestrator.run(topic)
 
     # Print the articles with sources
@@ -53,3 +50,5 @@ if __name__ == "__main__":
         print(f"Description: {article['description']}")
         print(f"Sources: {article['sources']}")
         print("---")
+    
+    return pd.DataFrame(articles_with_sources)
