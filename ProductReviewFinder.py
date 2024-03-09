@@ -67,6 +67,8 @@ class ProductReviewFinder:
         related_products = self.generateRelatedProducts(topic)
         product_reviews = []
         for product in top_products:
-            title = f'Review of {product['title']}'
+            title = f'Review of {product["title"]}'
             description = self.createDescription(title)
             product_reviews.append({'title': title, 'description': description})
+        
+        return product_reviews
