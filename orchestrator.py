@@ -21,7 +21,7 @@ class Orchestrator:
         product_reviews = self.product_review_finder.createArticleList(topic)
         supplementary_articles = self.supplementary_article_planner.generateSupplementaryArticles(topic)
 
-        all_articles = product_reviews + supplementary_articles
+        all_articles = supplementary_articles
 
         articles_with_sources = []
         with concurrent.futures.ProcessPoolExecutor() as executor:
@@ -35,7 +35,10 @@ class Orchestrator:
                 article["index"] = i  # Add the index to the article dictionary
                 articles_with_sources.append(article)
 
+        print("Found Sources")
+
         articles_with_sources = list(articles_with_sources)  # Convert to list
+        articles_with_sources = articles_with_sources + product_reviews
 
         planned_articles = []
         with concurrent.futures.ThreadPoolExecutor() as executor:
