@@ -1,13 +1,15 @@
 import json
 import openai
+import multiprocessing
 
 class SupplementaryArticlePlanner:
     def __init__(self, openai_key: str):
-        self.client = openai.Client(api_key=openai_key)
+        self.openai_key = openai_key
 
     def generateSupplementaryArticles(self, topic: str):
+        client = openai.Client(api_key=self.openai_key)
         # Get the top 5 related products for the proposed topic using an LLM. For example 'E-Bikes' would returne top e-bike battiers, top bike helmets, top bike tires
-        response = self.client.chat.completions.create(
+        response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
                 {
