@@ -1,6 +1,13 @@
 from googleapiclient.discovery import build
 
 
+def result_to_list(r):
+    res = []
+    for i in r:
+        dictElem = {'title': i['title'], 'link': i['link']}
+        res.append(dictElem)
+    return res
+
 
 class Source_Finder:
 
@@ -16,29 +23,24 @@ class Source_Finder:
             cx=self.CSE_ID,
             num=num
         ).execute()
+        print(result)
         return result['items']
-
 
     def filter_results(self, r):
         results = r.copy()
         for r in results:
-            for b in block_list:
+            for b in self.block_list:
                 if b in r['link']:
                     results.remove(r)
         return results
-
-
-    def result_to_list(self, r):
-        res = []
-        for i in r:
-            dictElem = {'title': i['title'], 'link': i['link']}
-            res.append(dictElem)
-        return res
-
 
     def find_sources(self, title, description):
         query = title + " " + description
         results = self.google_search(query)
         filtered = self.filter_results(results)
-        return self.result_to_list(filtered)
+        return result_to_list(filtered)
 
+
+
+s = Source_Finder(google_key,cse_id,block_list)
+s.find_sources("E-Bikes", "These are the advantages and disadvantages of Ebikes.")
