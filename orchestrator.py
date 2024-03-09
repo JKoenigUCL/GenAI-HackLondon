@@ -1,4 +1,4 @@
-import ProductReviewFinder
+from ProductReviewFinder import ProductReviewFinder
 
 
 class Orchestrator:
