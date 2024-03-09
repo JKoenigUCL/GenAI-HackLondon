@@ -21,9 +21,3 @@ class ArticlePlanGenerator:
         )
         article_plan = response.choices[0].message.content
         return article_plan
-    
-if __name__ == "__main__":
-    openai_key = "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"
-    article_planner = ArticlePlanGenerator(openai_key)
-    article_plan = article_planner.generateSupplementaryArticles("Tablet vs Laptop: Choosing the Right Device for Your Needs", "Compare the advantages and limitations of tablets and laptops to help you decide which device is better suited for your specific tasks and preferences.")
-    print(article_plan)
