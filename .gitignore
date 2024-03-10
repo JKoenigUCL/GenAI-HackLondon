@@ -4,6 +4,8 @@ venv/
 ContentPlan/**
 api_secrets.py
 
+.streamlit/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
