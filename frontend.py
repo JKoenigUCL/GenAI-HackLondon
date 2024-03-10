@@ -1,13 +1,15 @@
-import gradio as gr
+import streamlit as st
 import pandas as pd
 import json
-import markdown
+import markdown2 as markdown
 import os
+import re
 
-from orchestrator import fudgeBrownie
+from orchestrator import Orchestrator
+from api_secrets import SecretManager
 
-dummy_data = pd.read_json("final_table_format.json")
-
+secrets = SecretManager()
+orchestrator = Orchestrator(secrets.openai_key, secrets.asin_data_api_key, secrets.google_api_key, secrets.cse_id)
 
 # Create a DataFrame from the articles in the folder
 def createDataFrame(folder_path):
@@ -22,18 +24,16 @@ def createDataFrame(folder_path):
 
 # Save Content Plan to a folder
 def saveContentPlan(articles, folder_path):
-    # Create new folder for the product
-    os.makedirs(folder_path)
+    if not os.path.exists(folder_path):
+        os.makedirs(folder_path)
 
-    # Save articles 
     for article in articles.to_dict(orient="records"):
-        file_path = os.path.join(folder_path, article["title"]+'.json')
+        file_path = os.path.join(folder_path, article["title"] + '.json')
         with open(file_path, 'w') as json_file:
             json.dump(article, json_file, indent=4)
 
 def sourcesTomarkdown(sources):
     return "  \n".join([f"[{source['title']}]({source['link']})" for source in sources])
-    
 
 # Convert JSON article to markdown
 def jsonArticleToHtml(json_article):
@@ -41,53 +41,83 @@ def jsonArticleToHtml(json_article):
         "## " + json_article["title"] + "  \n" +
         json_article["description"] + "  \n" +
         json_article["article_plan"] + "  \n" +
-        "### Sources  \n"+
+        "### Sources  \n" +
         sourcesTomarkdown(json_article["sources"])
     )
 
-
 def generateArticles(Product, Article=None):
     folder_path = os.path.join(os.getcwd(), "ContentPlan", Product)
-    print("Product: ", Product)
+    st.write("Product: ", Product)
 
     if os.path.exists(folder_path):
-        print("Folder exists")
+        st.write("Folder exists")
         articles = createDataFrame(folder_path)
     else:
-        articles = fudgeBrownie(Product)
-        saveContentPlan(articles, folder_path)
+        with st.status("Orchestrating Content...", expanded=True) as status:
+            st.write("Generating Content Plan...")
+            orchestrator.generateContentPlan(Product)
+            st.write("Finding Article Sources...")
+            orchestrator.addSources()
+            st.write("Writing Article Plans...")
+            planned_articles = orchestrator.planArticles()
+            st.write("Saving...")
+            for article in planned_articles:
+                article["title"] = re.sub(r'[\\/*?:"<>|]', '', article["title"])
 
-    json_article = {}
-    article = ""
+            articles = pd.DataFrame(planned_articles)
+            saveContentPlan(articles, folder_path)
+            status.update(label="Orchestration Complete", state="complete", expanded=False)
 
-    print("Articles:  ")
-    print(articles)
 
-    # Get article
-    if Article:
-        file_path = os.path.join(folder_path, Article+'.json')
-        if os.path.exists(file_path):
-            with open(file_path, 'r') as json_file:
-                json_article = json.load(json_file)
-                article = jsonArticleToHtml(json_article)
+    # Re order the articles so that all articles that start with review are last
+    articles = articles.sort_values(by="title", key=lambda x: x.str.startswith("Review"))
+    return articles[["title", "description", "article_plan"]]
 
-    return [articles[["title", "description"]].head(5).values.tolist(), json_article, article]
+# This function displays the article details correctly by using a unique identifier
+def show_article_details(article_title, articles):
+    selected_article = articles.loc[articles['title'] == article_title].iloc[0]
+    st.markdown(f"### {selected_article['title']}")
+    st.markdown(selected_article['description'])
+    st.markdown("## Article Plan")
+    st.markdown(selected_article['article_plan'])
 
-with gr.Blocks() as app:
-    product = gr.Textbox(label="Product")
-    article = gr.Textbox(label="Article")
-    
-    outputArticles = gr.DataFrame(
-        headers=["Title", "Description"],
-        type="pandas",
-        label="Articles"
-    )
+# Improved function to display articles as cards and handle selection
+def display_articles_as_cards(articles):
+    cols_per_row = 3
+    for i in range(0, len(articles), cols_per_row):
+        cols = st.columns(cols_per_row)
+        for idx, col in enumerate(cols):
+            if i+idx < len(articles):
+                article = articles.iloc[i+idx]
+                with col:
+                    st.markdown(f"### {article['title']}")
+                    st.write(f"{article['description']}")
+                    show_more_key = f"show_more_{i+idx}"  # Unique key for each button
+                    if st.button("Show more", key=show_more_key):
+                        # Store the title of the selected article as a unique identifier
+                        st.session_state['selected_article_title'] = article['title']
+                        # Rerun to show the selected article
+                        st.rerun()
 
-    with gr.Row():
-        outputArticleJson = gr.Json(label="Article JSON")
-        outputArticle = gr.HTML(label="Article")
+product = st.text_input("Product")
 
-    process_btn = gr.Button("Request")
-    process_btn.click(fn=generateArticles, inputs=[product,article], outputs=[outputArticles, outputArticleJson, outputArticle])
+if product:
 
-app.launch(share=True)
+    articles = generateArticles(product)
+    st.session_state['articles'] = articles
+
+    if 'selected_article_title' not in st.session_state:
+        st.session_state['selected_article_title'] = ""
+
+    if st.session_state['selected_article_title'] == "":
+        # Display articles in a card-like format
+        display_articles_as_cards(articles)
+    else:
+        # Show enlarged article details based on the selected article's title stored in session state
+        show_article_details(st.session_state['selected_article_title'], articles)
+
+        if st.button("Back"):
+            # Clear the selected article title to return to the card view
+            st.session_state['selected_article_title'] = ""
+            # Rerun to show the card view
+            st.rerun()

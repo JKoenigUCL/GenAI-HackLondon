@@ -1,7 +1,7 @@
 hackenv/
 venv/
 
-ContentPlan/*
+api_secrets.py
 
 
 
