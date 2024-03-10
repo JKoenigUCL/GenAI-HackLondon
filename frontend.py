@@ -33,7 +33,18 @@ def saveContentPlan(articles, folder_path):
             json.dump(article, json_file, indent=4)
 
 def sourcesTomarkdown(sources):
-    return "  \n".join([f"[{source['title']}]({source['link']})" for source in sources])
+    # Start of the list
+    markdown_sources = "<ul>"
+    
+    source_list = [(source["title"], source["link"]) for source in sources]
+
+    for title, url in source_list:
+        markdown_sources += "<li><a href='{}'>{}</a></li>".format(url, title)
+
+    markdown_sources += "</ul>"
+    
+    return markdown_sources
+
 
 # Convert JSON article to markdown
 def jsonArticleToHtml(json_article):
@@ -76,16 +87,24 @@ def generateArticles(Product, Article=None):
 # This function displays the article details correctly by using a unique identifier
 def show_article_details(article_title, articles):
     selected_article = articles.loc[articles['title'] == article_title].iloc[0]
-    st.markdown(f"### {selected_article['title']}")
-    st.markdown(selected_article['description'])
-    st.markdown("## Article Plan")
-    st.markdown(selected_article['article_plan'])
-    st.markdown("## Sources")
-    st.markdown(sourcesTomarkdown(selected_article['sources']))
+    
+    # Use a div wrapper with a left margin of 30% for the whole section
+    left_margin_style = "<div style='margin-left: 30%;'>"
+    
+    # Closing div tag
+    end_div = "</div>"
+    
+    st.markdown(left_margin_style + "<h1>{}</h1>".format(selected_article['title']) + end_div, unsafe_allow_html=True)
+    st.markdown(left_margin_style + "<p>{}</p>".format(selected_article['description']) + end_div, unsafe_allow_html=True)
+    st.markdown(left_margin_style + "<h2>Article Plan</h2>" + end_div, unsafe_allow_html=True)
+    st.markdown(left_margin_style + "<p>{}</p>".format(selected_article['article_plan']) + end_div, unsafe_allow_html=True)
+    st.markdown(left_margin_style + "<h2>Sources</h2>" + end_div, unsafe_allow_html=True)
+    st.markdown(left_margin_style + "<p>{}</p>".format(sourcesTomarkdown(selected_article['sources'])) + end_div, unsafe_allow_html=True)
+
 
 # Improved function to display articles as cards and handle selection
 def display_articles_as_cards(articles):
-    cols_per_row = 3
+    cols_per_row = 4
     for i in range(0, len(articles), cols_per_row):
         cols = st.columns(cols_per_row)
         for idx, col in enumerate(cols):
@@ -114,11 +133,10 @@ if product:
         # Display articles in a card-like format
         display_articles_as_cards(articles)
     else:
-        # Show enlarged article details based on the selected article's title stored in session state
-        show_article_details(st.session_state['selected_article_title'], articles)
-
         if st.button("Back"):
             # Clear the selected article title to return to the card view
             st.session_state['selected_article_title'] = ""
             # Rerun to show the card view
             st.rerun()
+        # Show enlarged article details based on the selected article's title stored in session state
+        show_article_details(st.session_state['selected_article_title'], articles)
