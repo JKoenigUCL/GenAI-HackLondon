@@ -6,6 +6,7 @@ from webscraping import Source_Finder
 from typing import List, Dict
 import pandas as pd
 import re
+from api_secrets import SecretManager
 
 block_list = ["reddit", "4chan"]
 
@@ -15,18 +16,26 @@ class Orchestrator:
         self.supplementary_article_planner = SupplementaryArticlePlanner(openai_key)
         self.source_finder = Source_Finder(google_api_key, cse_id, block_list)
         self.article_plan_generator = ArticlePlanGenerator(openai_key)
+        self.review_articles = []
+        self.supplementary_articles = []
+        self.articles_with_sources = []
 
+    def reset(self):
+        self.review_articles = []
+        self.supplementary_articles = []
+        self.articles_with_sources = []
 
-    def run(self, topic: str) -> List[Dict]:
-        product_reviews = self.product_review_finder.createArticleList(topic)
-        supplementary_articles = self.supplementary_article_planner.generateSupplementaryArticles(topic)
+    def generateContentPlan(self, topic: str):
+        self.review_articles = self.product_review_finder.createArticleList(topic)
+        self.supplementary_articles = self.supplementary_article_planner.generateSupplementaryArticles(topic)
 
-        all_articles = supplementary_articles
-
+        return self.review_articles + self.supplementary_articles
+    
+    def addSources(self):
         articles_with_sources = []
         with concurrent.futures.ProcessPoolExecutor() as executor:
             futures = []
-            for i, article in enumerate(all_articles):
+            for i, article in enumerate(self.supplementary_articles):
                 future = executor.submit(self.source_finder.find_sources, article["title"], article["description"])
                 futures.append((future, article, i))
             for future, article, i in futures:
@@ -34,16 +43,16 @@ class Orchestrator:
                 article["sources"] = sources
                 article["index"] = i  # Add the index to the article dictionary
                 articles_with_sources.append(article)
-
-        print("Found Sources")
-
-        articles_with_sources = list(articles_with_sources)  # Convert to list
-        articles_with_sources = articles_with_sources + product_reviews
-
+        self.supplementary_articles = list(articles_with_sources)
+        self.articles_with_sources = self.supplementary_articles + self.review_articles
+        
+        return self.articles_with_sources
+    
+    def planArticles(self):
         planned_articles = []
         with concurrent.futures.ThreadPoolExecutor() as executor:
             futures = []
-            for article in articles_with_sources:
+            for article in self.articles_with_sources:
                 future = executor.submit(self.article_plan_generator.generateSupplementaryArticles, article["title"], article["description"])
                 futures.append((future, article))
             for future, article in futures:
@@ -53,14 +62,7 @@ class Orchestrator:
 
         return planned_articles
 
-
-def fudgeBrownie(topic):
-
-    orchestrator = Orchestrator(openai_key, asin_data_api_key, google_api_key, cse_id)
-    articles_with_sources = orchestrator.run(topic)
-
-    #Get rid of escape characters
-    for article in articles_with_sources:
-        article["title"] = re.sub(r'[\\/*?:"<>|]', '', article["title"])
-    
-    return pd.DataFrame(articles_with_sources)
+    def run(self, topic: str) -> List[Dict]:
+        self.generateContentPlan(topic)
+        self.addSources()
+        return self.planArticles()

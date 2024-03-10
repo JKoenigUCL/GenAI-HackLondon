@@ -3,3 +3,4 @@ pandas==2.2.1
 openai==1.13.3
 markdown
 gradio
+streamlit
