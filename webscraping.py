@@ -1,12 +1,7 @@
 from googleapiclient.discovery import build
 
-# comment out / add hosts
-block_list = ["reddit",
-              "4chan"]
-
 
 class Source_Finder:
-
     def __init__(self, API_KEY, CSE_ID, block_list):
         self.API_KEY = API_KEY
         self.CSE_ID = CSE_ID
@@ -16,12 +11,10 @@ class Source_Finder:
         for i in range(3):
             try:
                 service = build("customsearch", "v1", developerKey=self.API_KEY)
-                result = service.cse().list(
-                    q=query,
-                    cx=self.CSE_ID,
-                    num=num
-                ).execute()
-                return result.get('items', [])  # Return an empty list if 'items' key is missing
+                result = service.cse().list(q=query, cx=self.CSE_ID, num=num).execute()
+                return result.get(
+                    "items", []
+                )  # Return an empty list if 'items' key is missing
             except Exception as e:
                 print(f"An error occurred during Google search: {e}")
                 print(result)
@@ -32,14 +25,14 @@ class Source_Finder:
         results = r.copy()
         for r in results:
             for b in self.block_list:
-                if b in r['link']:
+                if b in r["link"]:
                     results.remove(r)
         return results
 
     def result_to_list(self, r):
         res = []
         for i in r:
-            dictElem = {'title': i['title'], 'link': i['link']}
+            dictElem = {"title": i["title"], "link": i["link"]}
             res.append(dictElem)
         return res
 
@@ -48,3 +41,4 @@ class Source_Finder:
         results = self.google_search(query)
         filtered = self.filter_results(results)
         return self.result_to_list(filtered)
+

@@ -9,14 +9,27 @@ import re
 from airtable_integration import AirTableManager
 
 block_list = ["reddit", "4chan"]
+# comment out / add hosts
+
 
 class Orchestrator:
-    def __init__(self, openai_key, asin_data_api_key, google_api_key, cse_id, airtable_personal_access_token, airtable_base_id, airtable_id) -> None:
+    def __init__(
+        self,
+        openai_key,
+        asin_data_api_key,
+        google_api_key,
+        cse_id,
+        airtable_personal_access_token,
+        airtable_base_id,
+        airtable_id,
+    ) -> None:
         self.product_review_finder = ProductReviewFinder(openai_key, asin_data_api_key)
         self.supplementary_article_planner = SupplementaryArticlePlanner(openai_key)
         self.source_finder = Source_Finder(google_api_key, cse_id, block_list)
         self.article_plan_generator = ArticlePlanGenerator(openai_key)
-        self.airtable_manager = AirTableManager(airtable_base_id, airtable_id, airtable_personal_access_token)
+        self.airtable_manager = AirTableManager(
+            airtable_base_id, airtable_id, airtable_personal_access_token
+        )
         self.review_articles = []
         self.supplementary_articles = []
         self.articles_with_sources = []
@@ -28,16 +41,22 @@ class Orchestrator:
 
     def generateContentPlan(self, topic: str):
         self.review_articles = self.product_review_finder.createArticleList(topic)
-        self.supplementary_articles = self.supplementary_article_planner.generateSupplementaryArticles(topic)
+        self.supplementary_articles = (
+            self.supplementary_article_planner.generateSupplementaryArticles(topic)
+        )
 
         return self.review_articles + self.supplementary_articles
-    
+
     def addSources(self):
         articles_with_sources = []
         with concurrent.futures.ProcessPoolExecutor() as executor:
             futures = []
             for i, article in enumerate(self.supplementary_articles):
-                future = executor.submit(self.source_finder.find_sources, article["title"], article["description"])
+                future = executor.submit(
+                    self.source_finder.find_sources,
+                    article["title"],
+                    article["description"],
+                )
                 futures.append((future, article, i))
             for future, article, i in futures:
                 sources = future.result()
@@ -46,15 +65,19 @@ class Orchestrator:
                 articles_with_sources.append(article)
         self.supplementary_articles = list(articles_with_sources)
         self.articles_with_sources = self.supplementary_articles + self.review_articles
-        
+
         return self.articles_with_sources
-    
+
     def planArticles(self):
         planned_articles = []
         with concurrent.futures.ThreadPoolExecutor() as executor:
             futures = []
             for article in self.articles_with_sources:
-                future = executor.submit(self.article_plan_generator.generateSupplementaryArticles, article["title"], article["description"])
+                future = executor.submit(
+                    self.article_plan_generator.generateSupplementaryArticles,
+                    article["title"],
+                    article["description"],
+                )
                 futures.append((future, article))
             for future, article in futures:
                 article_plan = future.result()
@@ -65,7 +88,7 @@ class Orchestrator:
         # so we need to add the remaining articles to the last batch
         batch_size = 10
         for i in range(0, len(planned_articles), batch_size):
-            self.airtable_manager.saveArticles(planned_articles[i:i+batch_size])
+            self.airtable_manager.saveArticles(planned_articles[i : i + batch_size])
 
         return planned_articles
 
@@ -73,3 +96,4 @@ class Orchestrator:
         self.generateContentPlan(topic)
         self.addSources()
         return self.planArticles()
+
