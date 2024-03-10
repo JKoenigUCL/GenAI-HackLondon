@@ -5,4 +5,5 @@ markdown
 gradio
 streamlit
 requests
-airtable
+pyairtable
+markdown2
