@@ -11,6 +11,16 @@ st.set_page_config(layout="wide")
 
 orchestrator = Orchestrator(st.secrets['openai_key'], st.secrets['asin_data_api_key'], st.secrets['google_api_key'], st.secrets['cse_id'], st.secrets['airtable_personal_access_token'], st.secrets['airtable_base_id'], st.secrets['airtable_id'])
 
+VALID_PASSWORD = st.secrets['password']
+
+def authenticate():
+    password = st.text_input("Password", type="password")
+    if password == VALID_PASSWORD:
+        return True
+    else:
+        st.error("Invalid username or password")
+        return False
+
 # Create a DataFrame from the articles in the folder
 def createDataFrame(folder_path):
     articles = []
@@ -137,23 +147,24 @@ def display_articles_as_cards(articles):
 # </style>
 # """, unsafe_allow_html=True)
 
-product = st.text_input("Product")
+if authenticate():
+    product = st.text_input("Product")
 
-if product:
-    articles = generateArticles(product)
-    st.session_state['articles'] = articles
+    if product:
+        articles = generateArticles(product)
+        st.session_state['articles'] = articles
 
-    if 'selected_article_title' not in st.session_state:
-        st.session_state['selected_article_title'] = ""
-
-    if st.session_state['selected_article_title'] == "":
-        # Display articles in a card-like format
-        display_articles_as_cards(articles)
-    else:
-        if st.button("Back"):
-            # Clear the selected article title to return to the card view
+        if 'selected_article_title' not in st.session_state:
             st.session_state['selected_article_title'] = ""
-            # Rerun to show the card view
-            st.rerun()
-        # Show enlarged article details based on the selected article's title stored in session state
-        show_article_details(st.session_state['selected_article_title'], articles)
+
+        if st.session_state['selected_article_title'] == "":
+            # Display articles in a card-like format
+            display_articles_as_cards(articles)
+        else:
+            if st.button("Back"):
+                # Clear the selected article title to return to the card view
+                st.session_state['selected_article_title'] = ""
+                # Rerun to show the card view
+                st.rerun()
+            # Show enlarged article details based on the selected article's title stored in session state
+            show_article_details(st.session_state['selected_article_title'], articles)
