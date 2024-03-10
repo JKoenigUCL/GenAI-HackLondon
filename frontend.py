@@ -16,6 +16,7 @@ VALID_PASSWORD = st.secrets['password']
 def authenticate():
     password = st.text_input("Password", type="password")
     if password == VALID_PASSWORD:
+        st.success("Logged in")
         return True
     else:
         st.error("Invalid username or password")
