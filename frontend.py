@@ -9,7 +9,7 @@ from orchestrator import Orchestrator
 
 st.set_page_config(layout="wide")
 
-orchestrator = Orchestrator(st.secrets['openai_key'], st.secrets['asin_data_api_key'], st.secrets['google_api_key'], st.secrets['cse_id'])
+orchestrator = Orchestrator(st.secrets['openai_key'], st.secrets['asin_data_api_key'], st.secrets['google_api_key'], st.secrets['cse_id'], st.secrets['airtable_personal_access_token'], st.secrets['airtable_base_id'], st.secrets['airtable_id'])
 
 # Create a DataFrame from the articles in the folder
 def createDataFrame(folder_path):

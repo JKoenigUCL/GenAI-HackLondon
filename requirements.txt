@@ -6,4 +6,3 @@ markdown2
 gradio
 streamlit
 requests
-pyairtable

@@ -6,21 +6,20 @@ from webscraping import Source_Finder
 from typing import List, Dict
 import pandas as pd
 import re
-from api_secrets import SecretManager
 from airtable_integration import AirTableManager
 
 block_list = ["reddit", "4chan"]
 
 class Orchestrator:
-    def __init__(self, openai_key, asin_data_api_key, google_api_key, cse_id):
+    def __init__(self, openai_key, asin_data_api_key, google_api_key, cse_id, airtable_personal_access_token, airtable_base_id, airtable_id) -> None:
         self.product_review_finder = ProductReviewFinder(openai_key, asin_data_api_key)
         self.supplementary_article_planner = SupplementaryArticlePlanner(openai_key)
         self.source_finder = Source_Finder(google_api_key, cse_id, block_list)
         self.article_plan_generator = ArticlePlanGenerator(openai_key)
+        self.airtable_manager = AirTableManager(airtable_base_id, airtable_id, airtable_personal_access_token)
         self.review_articles = []
         self.supplementary_articles = []
         self.articles_with_sources = []
-        self.airtable_manager = AirTableManager()
 
     def reset(self):
         self.review_articles = []

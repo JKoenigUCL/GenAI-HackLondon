@@ -1,21 +1,20 @@
 # class supposed to get articles from frontend and save them to airtable
-from pyairtable import Api
-from api_secrets import SecretManager
 import json
 import requests
 
-
 class AirTableManager:
-    def __init__(self):
-        self.secrets = SecretManager()
+    def __init__(self, aritable_base_id, airtable_id, airtable_personal_access_token):
+        self.airtable_base_id = aritable_base_id
+        self.airtable_id = airtable_id
+        self.airtable_personal_access_token = airtable_personal_access_token
 
     def saveArticles(self, articleList: list):
         dataJson = articleList
 
-        url = f"https://api.airtable.com/v0/app{self.secrets.airtable_base_id}/tbl{self.secrets.airtable_id}"
+        url = f"https://api.airtable.com/v0/app{self.airtable_base_id}/tbl{self.airtable_id}"
 
         headers = {
-            "Authorization": f"Bearer {self.secrets.airtable_personal_access_token}",
+            "Authorization": f"Bearer {self.airtable_personal_access_token}",
             "Content-Type": "application/json"
         }
 
