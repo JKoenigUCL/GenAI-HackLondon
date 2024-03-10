@@ -1,9 +1,8 @@
 hackenv/
 venv/
 
-api_secrets.py
-
 ContentPlan/**
+api_secrets.py
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
