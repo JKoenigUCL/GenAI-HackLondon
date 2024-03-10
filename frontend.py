@@ -8,6 +8,8 @@ import re
 from orchestrator import Orchestrator
 from api_secrets import SecretManager
 
+st.set_page_config(layout="wide")
+
 secrets = SecretManager()
 orchestrator = Orchestrator(secrets.openai_key, secrets.asin_data_api_key, secrets.google_api_key, secrets.cse_id)
 
@@ -61,7 +63,7 @@ def generateArticles(Product, Article=None):
     st.write("Product: ", Product)
 
     if os.path.exists(folder_path):
-        st.write("Folder exists")
+        # st.write("Folder exists")
         articles = createDataFrame(folder_path)
     else:
         with st.status("Orchestrating Content...", expanded=True) as status:
@@ -89,7 +91,7 @@ def show_article_details(article_title, articles):
     selected_article = articles.loc[articles['title'] == article_title].iloc[0]
     
     # Use a div wrapper with a left margin of 30% for the whole section
-    left_margin_style = "<div style='margin-left: 30%;'>"
+    left_margin_style = "<div class='plan_format' style='margin-left: 30%; margin-right: 30%;'>"
     
     # Closing div tag
     end_div = "</div>"
@@ -119,6 +121,23 @@ def display_articles_as_cards(articles):
                         st.session_state['selected_article_title'] = article['title']
                         # Rerun to show the selected article
                         st.rerun()
+
+# st.write("""
+# <style>
+# @media only screen and (min-width: 901) {
+#   plan_format {
+#     margin-left: 30%;
+#   }
+# }
+         
+# /* styles for mobile devices */
+# @media only screen and (max-width: 900) {
+#   plan_format {
+#     text-align: left;
+#   }
+# }
+# </style>
+# """, unsafe_allow_html=True)
 
 product = st.text_input("Product")
 
