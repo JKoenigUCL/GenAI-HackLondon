@@ -4,9 +4,6 @@ from ArticlePlanGenerator import ArticlePlanGenerator
 import concurrent.futures
 from webscraping import Source_Finder
 from typing import List, Dict
-import pandas as pd
-import re
-from api_secrets import SecretManager
 
 block_list = ["reddit", "4chan"]
 

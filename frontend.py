@@ -50,7 +50,7 @@ def generateArticles(Product, Article=None):
     st.write("Product: ", Product)
 
     if os.path.exists(folder_path):
-        st.write("Folder exists")
+        # st.write("Folder exists")
         articles = createDataFrame(folder_path)
     else:
         with st.status("Orchestrating Content...", expanded=True) as status:
@@ -76,7 +76,7 @@ def generateArticles(Product, Article=None):
 # This function displays the article details correctly by using a unique identifier
 def show_article_details(article_title, articles):
     selected_article = articles.loc[articles['title'] == article_title].iloc[0]
-    st.markdown(f"### {selected_article['title']}")
+    st.markdown("### Description")
     st.markdown(selected_article['description'])
     st.markdown("## Article Plan")
     st.markdown(selected_article['article_plan'])
