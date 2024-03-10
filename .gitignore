@@ -1,8 +1,8 @@
 hackenv/
 venv/
 
-ContentPlan/*
-
+ContentPlan/**
+api_secrets.py
 
 
 # Byte-compiled / optimized / DLL files
