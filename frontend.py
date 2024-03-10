@@ -6,12 +6,10 @@ import os
 import re
 
 from orchestrator import Orchestrator
-from api_secrets import SecretManager
 
 st.set_page_config(layout="wide")
 
-secrets = SecretManager()
-orchestrator = Orchestrator(secrets.openai_key, secrets.asin_data_api_key, secrets.google_api_key, secrets.cse_id)
+orchestrator = Orchestrator(st.secrets['openai_key'], st.secrets['asin_data_api_key'], st.secrets['google_api_key'], st.secrets['cse_id'])
 
 # Create a DataFrame from the articles in the folder
 def createDataFrame(folder_path):
