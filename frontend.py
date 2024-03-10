@@ -71,7 +71,7 @@ def generateArticles(Product, Article=None):
 
     # Re order the articles so that all articles that start with review are last
     articles = articles.sort_values(by="title", key=lambda x: x.str.startswith("Review"))
-    return articles[["title", "description", "article_plan"]]
+    return articles[["title", "description", "article_plan", "sources"]]
 
 # This function displays the article details correctly by using a unique identifier
 def show_article_details(article_title, articles):
@@ -80,6 +80,8 @@ def show_article_details(article_title, articles):
     st.markdown(selected_article['description'])
     st.markdown("## Article Plan")
     st.markdown(selected_article['article_plan'])
+    st.markdown("## Sources")
+    st.markdown(sourcesTomarkdown(selected_article['sources']))
 
 # Improved function to display articles as cards and handle selection
 def display_articles_as_cards(articles):
@@ -102,7 +104,6 @@ def display_articles_as_cards(articles):
 product = st.text_input("Product")
 
 if product:
-
     articles = generateArticles(product)
     st.session_state['articles'] = articles
 
