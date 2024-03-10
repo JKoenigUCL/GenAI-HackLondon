@@ -4,6 +4,10 @@ from ArticlePlanGenerator import ArticlePlanGenerator
 import concurrent.futures
 from webscraping import Source_Finder
 from typing import List, Dict
+import pandas as pd
+import re
+from api_secrets import SecretManager
+from airtable_integration import AirTableManager
 
 block_list = ["reddit", "4chan"]
 
@@ -16,6 +20,7 @@ class Orchestrator:
         self.review_articles = []
         self.supplementary_articles = []
         self.articles_with_sources = []
+        self.airtable_manager = AirTableManager()
 
     def reset(self):
         self.review_articles = []
@@ -55,7 +60,13 @@ class Orchestrator:
             for future, article in futures:
                 article_plan = future.result()
                 article["article_plan"] = article_plan
+                # add article plan to airtable as soon as it gets generated
                 planned_articles.append(article)
+        # 10 articles per batch but planed artciles might not be divisible by 10
+        # so we need to add the remaining articles to the last batch
+        batch_size = 10
+        for i in range(0, len(planned_articles), batch_size):
+            self.airtable_manager.saveArticles(planned_articles[i:i+batch_size])
 
         return planned_articles
 

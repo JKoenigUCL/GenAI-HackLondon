@@ -1,5 +1,9 @@
 google-api-python-client
 pandas==2.2.1
 openai==1.13.3
+markdown
 markdown2
+gradio
 streamlit
+requests
+pyairtable
