@@ -3,7 +3,7 @@ venv/
 
 api_secrets.py
 
-
+ContentPlan/**
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
